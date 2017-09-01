@@ -2,7 +2,7 @@
 
 """parity_orthopoly.py
 Author: Jonah Miller (jonah.maxwell.miller@gmail.com)
-Time-stamp: <2017-08-31 19:32:47 (jmiller)>
+Time-stamp: <2017-08-31 19:50:04 (jmiller)>
 
 A module for parity-restricted orthogonal polynomials for
 pseudospectral methods in Python
@@ -136,12 +136,11 @@ def calculate_div_x_modal(order,parity):
     Allowed only for odd parity.
     """
     assert parity == ODD
-    next_parity = ODD if parity == EVEN else EVEN
     out = np.zeros((order+1,order+1))
     x = mono([0,1]).convert(kind=poly)
     for i in range(order+1):
         coefs = (poly.basis(2*i+1)/x).coef
-        out[:i+offset,i] = filter_coefs(coefs,next_parity)
+        out[:i+1,i] = filter_coefs(coefs,EVEN)
     return out
 
 def make_nodal_operator(modal_operator,c2s,s2c):
@@ -209,10 +208,11 @@ class ParityPseudoSpectralDiscretization1D:
         self.van_odd = calculate_vandermonde(self.order,self.quads,ODD)
         # modal operations
         self.dModal_even = calculate_dModal(self.order,EVEN)
-        self.d2Modal_even = np.dot(dModal_even,dModal_even)
+        self.d2Modal_even = np.dot(self.dModal_even,self.dModal_even)
         self.dModal_odd = calculate_dModal(self.order,ODD)
         self.div_x_modal = calculate_div_x_modal(self.order,ODD)
-        self.poisson_modal = d2Modal + 2*np.dot(div_x_modal,dModal)
+        self.poisson_modal = (self.d2Modal_even
+                              + 2*np.dot(self.div_x_modal,self.dModal_even))
         # nodal operations
         self.dNodal_even = make_nodal_operator(self.dModal_even,
                                                self.van_even.c2s,
