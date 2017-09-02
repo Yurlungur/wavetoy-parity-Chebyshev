@@ -2,7 +2,7 @@
 
 """parity_orthopoly.py
 Author: Jonah Miller (jonah.maxwell.miller@gmail.com)
-Time-stamp: <2017-09-01 19:52:28 (jmiller)>
+Time-stamp: <2017-09-01 20:40:03 (jmiller)>
 
 A module for parity-restricted orthogonal polynomials for
 pseudospectral methods in Python
@@ -175,17 +175,14 @@ def get_continuous_object(grid_func,c2s,parity,
 
     Returns
     -------
-    An numpy polynomial object which can be called to be evaluated
+    A numpy polynomial object which can be called to be evaluated
     """
     offset = 0 if parity == EVEN else 1
-    order = len(grid_func)-1
-    p = 2*order + 1
+    num_modes = len(grid_func)
+    total_modes=2*num_modes
     coefs = np.dot(c2s,grid_func)
-    spec_func = np.zeros(p)
-    if parity == EVEN:
-        spec_func[offset::2] = coefs
-    else:
-        spec_func[offset::2] = coefs[:-1]
+    spec_func = np.zeros(total_modes)
+    spec_func[offset::2] = coefs
     my_interp = poly(spec_func,domain=[xmin,xmax])
     return my_interp
 
