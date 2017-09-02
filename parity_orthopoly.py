@@ -2,7 +2,7 @@
 
 """parity_orthopoly.py
 Author: Jonah Miller (jonah.maxwell.miller@gmail.com)
-Time-stamp: <2017-08-31 19:50:04 (jmiller)>
+Time-stamp: <2017-09-01 19:52:28 (jmiller)>
 
 A module for parity-restricted orthogonal polynomials for
 pseudospectral methods in Python
@@ -27,6 +27,7 @@ LOCAL_ORIGIN = 0.
 LOCAL_WIDTH = float(LOCAL_XMAX-LOCAL_XMIN)
 # A class for orthogonal polynomials
 poly = polynomial.chebyshev.Chebyshev
+weight_func = polynomial.chebyshev.chebweight
 mono = polynomial.polynomial.Polynomial
 integrator = integrate.quad
 EVEN='even'
@@ -179,11 +180,27 @@ def get_continuous_object(grid_func,c2s,parity,
     offset = 0 if parity == EVEN else 1
     order = len(grid_func)-1
     p = 2*order + 1
-    coeffs = np.dot(c2s,grid_func)
+    coefs = np.dot(c2s,grid_func)
     spec_func = np.zeros(p)
-    spec_func[offset::2] = coeffs
+    if parity == EVEN:
+        spec_func[offset::2] = coefs
+    else:
+        spec_func[offset::2] = coefs[:-1]
     my_interp = poly(spec_func,domain=[xmin,xmax])
     return my_interp
+
+def reference_inner_product(f,g):
+    """Inner product <f,g> on interval [LOCAL_XMIN,LOCAL_XMAX]    
+    """
+    integrand = lambda x: f(x)*g(x)*weight_func(x)
+    integral,err = integrate.quad(integrand,
+                                  LOCAL_XMIN,LOCAL_XMAX,
+                                  points = [0.0])
+    return np.sqrt(integral/2)
+
+def reference_2norm(f):
+    "2norm of f on interval [LOCAL_XMIN,LOCAL_XMAX]"
+    return reference_inner_product(f,f)
 # ======================================================================
 
 
