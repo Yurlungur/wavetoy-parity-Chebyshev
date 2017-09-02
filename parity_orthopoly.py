@@ -2,7 +2,7 @@
 
 """parity_orthopoly.py
 Author: Jonah Miller (jonah.maxwell.miller@gmail.com)
-Time-stamp: <2017-09-01 20:40:03 (jmiller)>
+Time-stamp: <2017-09-01 23:42:51 (jmiller)>
 
 A module for parity-restricted orthogonal polynomials for
 pseudospectral methods in Python
@@ -132,6 +132,18 @@ def calculate_dModal(order,parity):
         out[:i+offset,i] = filter_coefs(coefs,next_parity)
     return out
 
+def calculate_d2Modal(order,parity):
+    """For a given order, maps coefficients of polynomials of parity to
+    coefficients of the second derivative, which will have the same
+    parity.
+    """
+    offset = 0 if parity == EVEN else 1
+    out = np.zeros((order+1,order+1))
+    for i in range(order+1):
+        coefs = poly.basis(2*i+offset).deriv().deriv().coef
+        out[:i+offset,i] = filter_coefs(coefs,parity)
+    return out
+
 def calculate_div_x_modal(order,parity):
     """Maps a polynomial of order to that polynomial divided by x.
     Allowed only for odd parity.
@@ -222,8 +234,8 @@ class ParityPseudoSpectralDiscretization1D:
         self.van_odd = calculate_vandermonde(self.order,self.quads,ODD)
         # modal operations
         self.dModal_even = calculate_dModal(self.order,EVEN)
-        self.d2Modal_even = np.dot(self.dModal_even,self.dModal_even)
         self.dModal_odd = calculate_dModal(self.order,ODD)
+        self.d2Modal_even = np.dot(self.dModal_odd,self.dModal_even)
         self.div_x_modal = calculate_div_x_modal(self.order,ODD)
         self.poisson_modal = (self.d2Modal_even
                               + 2*np.dot(self.div_x_modal,self.dModal_even))
@@ -241,7 +253,7 @@ class ParityPseudoSpectralDiscretization1D:
                                                self.van_odd.c2s,
                                                self.van_even.s2c)
         self.poisson_nodal = make_nodal_operator(self.poisson_modal,
-                                                 self.van_odd.c2s,
+                                                 self.van_even.c2s,
                                                  self.van_even.s2c)
         
         
