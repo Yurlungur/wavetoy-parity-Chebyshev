@@ -2,7 +2,7 @@
 
 """parity_orthopoly.py
 Author: Jonah Miller (jonah.maxwell.miller@gmail.com)
-Time-stamp: <2017-09-01 23:42:51 (jmiller)>
+Time-stamp: <2017-09-02 00:32:17 (jmiller)>
 
 A module for parity-restricted orthogonal polynomials for
 pseudospectral methods in Python
@@ -222,11 +222,17 @@ class ParityPseudoSpectralDiscretization1D:
     defines internally all structures and methods the user needs
     to calculate spectral derivatives in 1D
     """
+
     def __init__(self,order,rmax=1.):
         "Constructor. Needs the order of the method and the domain [0,rmax]."
+        # checks
+        assert rmax > 0
+        assert order > 0
+        # basics
         self.order = order
         self.rmin = 0.
         self.rmax = rmax
+        self.dxdr = 1.0/rmax
         self.quads = get_parity_quadrature_points(self.order)
         self.weights = get_integration_weights(self.order,self.quads)
         # Vandermonde
@@ -256,8 +262,49 @@ class ParityPseudoSpectralDiscretization1D:
                                                  self.van_even.c2s,
                                                  self.van_even.s2c)
         
-        
+    def get_x(self):
+        "returns the colocation points"
+        return self.rmax*self.quads
 
+    def ddr(self,grid_func,parity):
+        "Calculates the first derivative of grid_func assumning parity"
+        if parity not in [EVEN,ODD]:
+            raise ValueError("Parity must be even or odd.")
+        op = self.dNodal_even if parity == EVEN else self.dNodal_odd
+        out = self.dxdr*np.dot(op,grid_func)
+        return out
+        
+    def d2dr2(self,grid_func,parity=EVEN):
+        "Calculates the second derivative of an even grid_func"
+        if parity != EVEN:
+            raise NotImplementedError("Only even parity implemented.")
+        out = (self.dxdr**2)*np.dot(self.d2Nodal_even,grid_func)
+        return out
+
+    def divide_by_r(self,grid_func,parity=ODD):
+        "Divides grid_func by r. Only works if grid_func is odd"
+        if parity != ODD:
+            raise ValueError("Can only divide odd functions by r")
+        out = self.dxdr*np.dot(self.div_x_nodal,grid_func)
+        return out
+    
+    def poisson_op(self,grid_func,parity=EVEN):
+        """Applies the Poisson operator to grid_func.
+        Only works for even functions.
+        """
+        if parity != EVEN:
+            raise ValueError("Poisson operator can only "
+                             "operate on even functions.")
+        out = (self.dxdr**2)*np.dot(self.poisson_nodal,grid_func)
+        return out
+
+    def to_continuum(self,grid_func,parity):
+        """Given a grid_func of parity, returns the appropriate
+        interpolating polynomial
+        """
+        c2s = self.van_even.c2s if parity == EVEN else self.van_odd.c2s
+        out = get_continuous_object(grid_func,c2s,parity,-self.rmax,self.rmax)
+        return out
         
 # ======================================================================
 
