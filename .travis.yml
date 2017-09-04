@@ -1,0 +1,25 @@
+language: python
+python:
+  - "2.7"
+
+notifications:
+  email: false
+sudo: false
+
+os:
+  - linux
+
+install:
+  - pip install --upgrade pip setuptools wheel
+  - pip install --only-binary=numpy,scipy numpy scipy matplotlib
+
+before_script:
+  - |
+    if [[ $TRAVIS_OS_NAME != 'osx' ]]; then
+      export DISPLAY=:99.0
+      sh -e /etc/init.d/xvfb start
+    fi
+
+script:
+  - python ./test/test_orthopoly.py
+

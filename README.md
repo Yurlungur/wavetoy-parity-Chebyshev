@@ -1,3 +1,5 @@
+[![Build Status](https://travis-ci.org/Yurlungur/wavetoy-parity-Chebyshev.svg?branch=master)](https://travis-ci.org/Yurlungur/wavetoy-parity-Chebyshev)
+
 wavetoy-parity-Chebyshev
 ==================================================
 
