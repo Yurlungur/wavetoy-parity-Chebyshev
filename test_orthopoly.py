@@ -2,7 +2,7 @@
 
 """test_orthopoly.py
 Author: Jonah Miller (jonah.maxwell.miller@gmail.com)
-Time-stamp: <2017-09-02 00:06:51 (jmiller)>
+Time-stamp: <2017-09-04 17:59:08 (jmiller)>
 
 Test suite for parity_orthopoly.py
 """
@@ -19,8 +19,6 @@ import matplotlib as mpl
 from matplotlib import pyplot as plt
 mpl.rcParams['font.size'] = 16
 
-import sys
-sys.path.append('..')
 import parity_orthopoly as parity
 
 # ======================================================================
